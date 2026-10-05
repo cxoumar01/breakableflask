@@ -7,9 +7,13 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v5
       - name: Dependances
-        run: |
-          python -m pip install --upgrade pip pip-audit
-          pip-audit --requirement requirements.txt
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: requirements.txt
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          exit-code: '1'
   Dockerfile:
     runs-on: ubuntu-24.04
     needs: Dependances
@@ -17,6 +21,13 @@ jobs:
       - name: Recuperer le code
         uses: actions/checkout@v5
       - name: Test Dockerfile
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: config
+          scan-ref: Dockerfile
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+      - name: Construire l'image Docker
         run: |
           test -f Dockerfile
           docker build --file Dockerfile --tag breakableflask:ci .
